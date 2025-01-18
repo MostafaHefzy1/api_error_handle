@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_application_5/core/networking/api_const.dart';
+import 'package:flutter_application_5/core/sharedpreference.dart';
 
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
@@ -12,8 +13,8 @@ class DioHelper {
         receiveDataWhenStatusError: true,
         
         headers: {
-          // 'Authorization': 'Bearer ${SharedprefHelper.getData(key: "token")}',
-          "lang": "ar"
+          'Authorization': 'Bearer ${CacheHelper.getData(key: "token")}',
+          "lang": "en"
         }));
 
     dio!.interceptors.add(PrettyDioLogger(

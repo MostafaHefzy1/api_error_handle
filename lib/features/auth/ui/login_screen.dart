@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_5/auth/data/models/login_requst_body.dart';
-import 'package:flutter_application_5/auth/data/repository/auth_repositoy.dart';
-import 'package:flutter_application_5/auth/data/web_services/auth_web_services.dart';
-import 'package:flutter_application_5/auth/logic/auth_cubit.dart';
-import 'package:flutter_application_5/auth/logic/auth_state.dart';
+import 'package:flutter_application_5/core/services/di.dart';
+import 'package:flutter_application_5/features/auth/data/models/login_request_body_model.dart';
+import 'package:flutter_application_5/features/auth/logic/auth_cubit.dart';
+import 'package:flutter_application_5/features/auth/logic/auth_state.dart';
+import 'package:flutter_application_5/features/auth/ui/register_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -14,8 +14,32 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AuthCubit(AuthRepositoy(AuthWebServices())),
-      child: BlocBuilder<AuthCubit, AuthState>(
+      create: (context) => AuthCubit(getIt()),
+      child: BlocConsumer<AuthCubit, AuthState>(
+        listener: (context, state) {
+          if (state is LoginFailedState) {
+            // Perform login action
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  backgroundColor: Colors.red,
+                  content: Text(
+                    state.apiErrorModel.message ?? "",
+                    style: const TextStyle(color: Colors.white),
+                  )),
+            );
+          }
+          if (state is LoginSuccessState) {
+            // Perform login action
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  backgroundColor: Colors.green,
+                  content: Text(
+                    "Login SuccessFuly",
+                    style: TextStyle(color: Colors.white),
+                  )),
+            );
+          }
+        },
         builder: (context, state) {
           var cubit = AuthCubit.get(context);
           return Scaffold(
@@ -68,30 +92,23 @@ class LoginScreen extends StatelessWidget {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 10),
-                    if (state is AuthErrorState)
-                      Text(
-                        state.apiErrorModel.message ?? "",
-                        style: TextStyle(
-                          color: Colors.red,
-                        ),
-                      ),
-                    const SizedBox(height: 50),
+                    // if (state is LoginFailedState)
+                    //   Text(
+                    //     state.apiErrorModel.message ?? "",
+                    //     style: TextStyle(color: Colors.deepOrange),
+                    //   ),
+                    const SizedBox(height: 30),
                     ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          // Perform login action
-                          // ScaffoldMessenger.of(context).showSnackBar(
-                          //   const SnackBar(content: Text('Login successful!')),
-                          // );
-                          cubit.login(LoginRequstBody(
-                              phone: phoneController.text,
-                              password: passwordController.text));
+                          cubit.login(
+                              LoginRequestBodyModel(
+                                  phone: phoneController.text,
+                                  password: passwordController.text),
+                              context);
                         }
                       },
-                      child: state is AuthLoadingState
-                          ? Center(child: CircularProgressIndicator())
-                          : const Text('Login'),
+                      child: const Text('Login'),
                     ),
                     TextButton(
                       onPressed: () {
@@ -116,7 +133,7 @@ class LoginScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const SignUpScreen()),
+                                  builder: (context) => RegisterScreen()),
                             );
                           },
                           child: const Text('Sign Up'),
@@ -145,20 +162,6 @@ class PasswordRecoveryScreen extends StatelessWidget {
         title: const Text('Password Recovery'),
       ),
       body: const Center(child: Text('Password Recovery Screen')),
-    );
-  }
-}
-
-class SignUpScreen extends StatelessWidget {
-  const SignUpScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign Up'),
-      ),
-      body: const Center(child: Text('Sign-Up Screen')),
     );
   }
 }
